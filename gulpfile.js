@@ -1,10 +1,37 @@
 'use strict';
 
-var gulp = require('gulp');
-var sass = require('gulp-sass');
+global.$ = {
+  package: require('./package.json'),
+  config: require('./gulp/config'),
+  path: {
+    task: require('./gulp/paths/tasks.js'),
+    jsFoundation: require('./gulp/paths/js.foundation.js'),
+    cssFoundation: require('./gulp/paths/css.foundation.js'),
+    app: require('./gulp/paths/app.js')
+  },
+  gulp: require('gulp'),
+  del: require('del'),
+  browserSync: require('browser-sync').create(),
+  gp: require('gulp-load-plugins')()
+};
 
-gulp.task('sass', function() {
-  return gulp.src('./source/style/app.scss')
-         .pipe(sass())
-         .pipe(gulp.dest('./build/style/app.css'))
+$.path.task.forEach(function(taskPath) {
+  require(taskPath)();
 });
+
+$.gulp.task('default', $.gulp.series(
+  'clean',
+  $.gulp.parallel(
+    'sass',
+    'pug',
+    'js:foundation',
+    'js:process',
+    'copy:image',
+    'css:foundation',
+    'sprite:svg'
+  ),
+  $.gulp.parallel(
+    'watch',
+    'serve'
+  )
+));
